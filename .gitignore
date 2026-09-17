@@ -1,0 +1,13 @@
+# Go
+boardd/boardd
+boardd/.go-*-cache/
+
+# Qt/CMake/qmake
+qt-client/build/
+qt-client/CMakeFiles/
+qt-client/CMakeCache.txt
+qt-client/Makefile
+qt-client/.qmake.stash
+qt-client/boardd-qml-client
+qt-client/moc_*.cpp
+qt-client/qrc_*.cpp
