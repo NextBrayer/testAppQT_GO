@@ -24,40 +24,42 @@ Item {
         }
     }
 
+    Rectangle { anchors.fill: parent; radius: 12; color: "#eaf1f8"; border.color: "#d3dfeb" }
+
     ColumnLayout {
-        anchors.fill: parent
+        anchors.fill: parent; anchors.margins: 8
         spacing: 5
         GridLayout {
             Layout.fillWidth: true; columns: 10; columnSpacing: 4; rowSpacing: 4
             Repeater {
                 model: "1234567890".split("")
-                delegate: Button { Layout.fillWidth: true; text: keyboard.uppercase ? modelData.toUpperCase() : modelData; font.pixelSize: 15; onClicked: { keyboard.type(text); keyboard.uppercase = false } }
+                delegate: KeyboardKey { Layout.fillWidth: true; text: keyboard.uppercase ? modelData.toUpperCase() : modelData; onClicked: { keyboard.type(text); keyboard.uppercase = false } }
             }
         }
         GridLayout {
             Layout.fillWidth: true; columns: 10; columnSpacing: 4; rowSpacing: 4
             Repeater {
                 model: "qwertyuiop".split("")
-                delegate: Button { Layout.fillWidth: true; text: keyboard.uppercase ? modelData.toUpperCase() : modelData; font.pixelSize: 15; onClicked: { keyboard.type(text); keyboard.uppercase = false } }
+                delegate: KeyboardKey { Layout.fillWidth: true; text: keyboard.uppercase ? modelData.toUpperCase() : modelData; onClicked: { keyboard.type(text); keyboard.uppercase = false } }
             }
         }
         GridLayout {
             Layout.fillWidth: true; columns: 9; columnSpacing: 4; rowSpacing: 4
             Repeater {
                 model: "asdfghjkl".split("")
-                delegate: Button { Layout.fillWidth: true; text: keyboard.uppercase ? modelData.toUpperCase() : modelData; font.pixelSize: 15; onClicked: { keyboard.type(text); keyboard.uppercase = false } }
+                delegate: KeyboardKey { Layout.fillWidth: true; text: keyboard.uppercase ? modelData.toUpperCase() : modelData; onClicked: { keyboard.type(text); keyboard.uppercase = false } }
             }
         }
         RowLayout {
             Layout.fillWidth: true; spacing: 5
-            Button { Layout.preferredWidth: 48; text: "Shift"; onClicked: keyboard.uppercase = !keyboard.uppercase }
-            Button { Layout.preferredWidth: 32; text: "-"; onClicked: keyboard.type("-") }
-            Button { Layout.preferredWidth: 32; text: ":"; onClicked: keyboard.type(":") }
-            Button { Layout.preferredWidth: 32; text: "/"; onClicked: keyboard.type("/") }
-            Button { Layout.preferredWidth: 32; text: "."; onClicked: keyboard.type(".") }
-            Button { Layout.preferredWidth: 56; text: "Clear"; onClicked: if (keyboard.target) keyboard.target.text = "" }
-            Button { Layout.fillWidth: true; text: "Space"; onClicked: keyboard.type(" ") }
-            Button { Layout.preferredWidth: 90; text: "Backspace"; onClicked: keyboard.backspace() }
+            KeyboardKey { Layout.preferredWidth: 48; text: "Shift"; onClicked: keyboard.uppercase = !keyboard.uppercase }
+            KeyboardKey { Layout.preferredWidth: 32; text: "-"; onClicked: keyboard.type("-") }
+            KeyboardKey { Layout.preferredWidth: 32; text: ":"; onClicked: keyboard.type(":") }
+            KeyboardKey { Layout.preferredWidth: 32; text: "/"; onClicked: keyboard.type("/") }
+            KeyboardKey { Layout.preferredWidth: 32; text: "."; onClicked: keyboard.type(".") }
+            KeyboardKey { Layout.preferredWidth: 56; text: "Clear"; onClicked: if (keyboard.target) keyboard.target.text = "" }
+            KeyboardKey { Layout.fillWidth: true; text: "Space"; onClicked: keyboard.type(" ") }
+            KeyboardKey { Layout.preferredWidth: 90; text: "Backspace"; onClicked: keyboard.backspace() }
         }
     }
 }

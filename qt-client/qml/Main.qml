@@ -125,9 +125,23 @@ ApplicationWindow {
         standardButtons: Dialog.Close
         background: Rectangle { radius: 14; color: "white"; border.color: "#d8e1eb" }
         header: Label { text: detailsDialog.title; color: "#17243a"; font.pixelSize: 21; font.bold: true; padding: 20 }
-        contentItem: ScrollView {
+        contentItem: Flickable {
+            id: detailsFlickable
             clip: true
-            TextArea { text: window.detailsText; readOnly: true; selectByMouse: true; wrapMode: TextEdit.WrapAnywhere; color: "#34465c"; font.family: "monospace"; font.pixelSize: 14 }
+            contentWidth: width
+            contentHeight: detailsOutput.paintedHeight + 24
+            boundsBehavior: Flickable.StopAtBounds
+            Text {
+                id: detailsOutput
+                width: detailsFlickable.width - 24
+                x: 12; y: 12
+                text: window.detailsText
+                color: "#34465c"
+                font.family: "monospace"
+                font.pixelSize: 14
+                wrapMode: Text.WrapAnywhere
+            }
+            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
         }
     }
 
@@ -142,22 +156,44 @@ ApplicationWindow {
     }
 
     Dialog {
-        id: wifiDialog; modal: true; width: 520
+        id: wifiDialog; modal: true; width: 540
+        property bool passwordVisible: false
         x: (window.width - width) / 2; y: (window.height - height) / 2
         title: "Connect Wi-Fi"; standardButtons: Dialog.Cancel | Dialog.Ok
-        background: Rectangle { radius: 14; color: "white"; border.color: "#d8e1eb" }
-        header: Label { text: wifiDialog.title; color: "#17243a"; font.pixelSize: 21; font.bold: true; padding: 20 }
+        background: Rectangle { radius: 16; color: "#ffffff"; border.color: "#c9d8e8" }
+        header: Rectangle {
+            implicitHeight: 76; color: "#246bdb"; radius: 16
+            Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 16; color: "#246bdb" }
+            Column { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; anchors.leftMargin: 22; spacing: 2
+                Text { text: "Connect Wi-Fi"; color: "white"; font.pixelSize: 22; font.bold: true }
+                Text { text: "Select a network and enter its password"; color: "#dceaff"; font.pixelSize: 13 }
+            }
+        }
         contentItem: ColumnLayout {
-            spacing: 10
-            TextField { id: ssidInput; Layout.fillWidth: true; placeholderText: "Wi-Fi name (SSID)"; focus: true; selectByMouse: true; onActiveFocusChanged: if (activeFocus) wifiKeyboard.target = ssidInput }
-            TextField { id: passwordInput; Layout.fillWidth: true; placeholderText: "Password (leave empty for open network)"; echoMode: TextInput.Password; selectByMouse: true; onActiveFocusChanged: if (activeFocus) wifiKeyboard.target = passwordInput }
+            spacing: 9
+            Label { text: "Network name"; color: "#40566e"; font.pixelSize: 13; font.bold: true }
+            TextField {
+                id: ssidInput; Layout.fillWidth: true; placeholderText: "Wi-Fi name (SSID)"; focus: true; selectByMouse: true
+                onActiveFocusChanged: if (activeFocus) wifiKeyboard.target = ssidInput
+                background: Rectangle { radius: 9; color: "#f8fbff"; border.color: ssidInput.activeFocus ? "#246bdb" : "#cdd9e6"; border.width: ssidInput.activeFocus ? 2 : 1 }
+            }
+            Label { text: "Password"; color: "#40566e"; font.pixelSize: 13; font.bold: true }
+            RowLayout {
+                Layout.fillWidth: true; spacing: 8
+                TextField {
+                    id: passwordInput; Layout.fillWidth: true; placeholderText: "Leave empty for an open network"; echoMode: wifiDialog.passwordVisible ? TextInput.Normal : TextInput.Password; selectByMouse: true
+                    onActiveFocusChanged: if (activeFocus) wifiKeyboard.target = passwordInput
+                    background: Rectangle { radius: 9; color: "#f8fbff"; border.color: passwordInput.activeFocus ? "#246bdb" : "#cdd9e6"; border.width: passwordInput.activeFocus ? 2 : 1 }
+                }
+                Button { text: wifiDialog.passwordVisible ? "Hide" : "Show"; onClicked: wifiDialog.passwordVisible = !wifiDialog.passwordVisible }
+            }
             OnScreenKeyboard { id: wifiKeyboard; Layout.fillWidth: true; target: ssidInput }
         }
         onOpened: { if (ssidInput.text.length === 0) ssidInput.forceActiveFocus(); else passwordInput.forceActiveFocus() }
         onAccepted: {
             if (ssidInput.text.length === 0) { responseOK = false; responseTitle = "Action failed"; responseText = "SSID is required."; return }
             window.callBoardd("wifi.connect", { ssid: ssidInput.text, password: passwordInput.text }, "Connect Wi-Fi")
-            ssidInput.text = ""; passwordInput.text = ""
+            ssidInput.text = ""; passwordInput.text = ""; wifiDialog.passwordVisible = false
         }
     }
 
