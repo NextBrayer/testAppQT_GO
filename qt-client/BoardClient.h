@@ -20,7 +20,7 @@ public:
 
 signals:
     void socketPathChanged();
-    void responseReceived(qint64 id, const QString &method, bool ok, const QVariant &result, const QString &error);
+    void responseReceived(qint64 id, const QString &method, bool ok, const QString &resultText, const QString &error);
 
 private:
     void handleResponse(QLocalSocket *socket, const QByteArray &line);

@@ -34,11 +34,11 @@ ApplicationWindow {
 
     BoardClient {
         id: board
-        onResponseReceived: function(id, method, ok, result, error) {
+        onResponseReceived: function(id, method, ok, resultText, error) {
             window.busy = false
             window.responseOK = ok
             window.responseTitle = (ok ? "Completed · " : "Failed · ") + method
-            window.responseText = JSON.stringify(ok ? result : { error: error }, null, 2)
+            window.responseText = ok ? resultText : "Error: " + error
         }
     }
 

@@ -3,7 +3,24 @@
 #include <QLocalSocket>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
 #include <QTimer>
+
+namespace {
+QString jsonText(const QJsonValue &value) {
+    if (value.isObject())
+        return QString::fromUtf8(QJsonDocument(value.toObject()).toJson(QJsonDocument::Indented));
+    if (value.isArray())
+        return QString::fromUtf8(QJsonDocument(value.toArray()).toJson(QJsonDocument::Indented));
+    if (value.isString())
+        return value.toString();
+    if (value.isBool())
+        return value.toBool() ? QStringLiteral("true") : QStringLiteral("false");
+    if (value.isDouble())
+        return QString::number(value.toDouble());
+    return QStringLiteral("null");
+}
+}
 
 BoardClient::BoardClient(QObject *parent) : QObject(parent) {
     const QString configuredSocket = qEnvironmentVariable("BOARDD_SOCKET");
@@ -80,9 +97,9 @@ void BoardClient::handleResponse(QLocalSocket *socket, const QByteArray &line) {
     const QJsonObject response = document.object();
     const qint64 id = response.value(QStringLiteral("id")).toVariant().toLongLong();
     const bool ok = response.value(QStringLiteral("ok")).toBool(false);
-    const QVariant result = response.value(QStringLiteral("result")).toVariant();
+    const QString resultText = jsonText(response.value(QStringLiteral("result")));
     const QString error = response.value(QStringLiteral("error")).toString();
-    emit responseReceived(id, m_methods.value(socket), ok, result, error);
+    emit responseReceived(id, m_methods.value(socket), ok, resultText, error);
 
     m_buffers.remove(socket);
     m_requestIDs.remove(socket);
@@ -94,7 +111,7 @@ void BoardClient::handleResponse(QLocalSocket *socket, const QByteArray &line) {
 void BoardClient::fail(QLocalSocket *socket, const QString &message) {
     if (!m_requestIDs.contains(socket))
         return;
-    emit responseReceived(m_requestIDs.value(socket), m_methods.value(socket), false, {}, message);
+    emit responseReceived(m_requestIDs.value(socket), m_methods.value(socket), false, QString(), message);
     m_buffers.remove(socket);
     m_requestIDs.remove(socket);
     m_methods.remove(socket);
