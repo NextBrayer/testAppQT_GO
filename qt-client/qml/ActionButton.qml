@@ -6,6 +6,7 @@ Button {
     id: control
     property color accent: "#1976d2"
     property string detail: ""
+    property string iconSource: ""
     signal triggered()
     implicitHeight: detail.length > 0 ? 64 : 56
     Layout.fillWidth: true
@@ -18,18 +19,13 @@ Button {
         border.width: 1
         border.color: !control.enabled ? "#3b516b" : Qt.lighter(control.accent, 1.18)
     }
-    contentItem: Column {
-        anchors.centerIn: parent
-        width: parent.width - 16
-        spacing: 2
-        Text {
-            width: parent.width; text: control.text; color: control.enabled ? "white" : "#a1b4c9"; font: control.font
-            horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
-        }
-        Text {
-            visible: control.detail.length > 0; width: parent.width; text: control.detail
-            color: control.enabled ? "#dcecff" : "#8296ad"; font.pixelSize: 11
-            horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
+    contentItem: RowLayout {
+        anchors.fill: parent; anchors.margins: 10; spacing: 9
+        Image { visible: control.iconSource.length > 0; source: control.iconSource; Layout.preferredWidth: 25; Layout.preferredHeight: 25; fillMode: Image.PreserveAspectFit }
+        ColumnLayout {
+            Layout.fillWidth: true; spacing: 1
+            Text { Layout.fillWidth: true; text: control.text; color: control.enabled ? "white" : "#a1b4c9"; font: control.font; elide: Text.ElideRight }
+            Text { visible: control.detail.length > 0; Layout.fillWidth: true; text: control.detail; color: control.enabled ? "#dcecff" : "#8296ad"; font.pixelSize: 11; elide: Text.ElideRight }
         }
     }
     onClicked: triggered()

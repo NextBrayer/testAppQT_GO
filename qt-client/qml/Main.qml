@@ -24,10 +24,10 @@ ApplicationWindow {
     property string currentTime: Qt.formatTime(new Date(), "hh:mm")
 
     property var categories: [
-        { name: "Overview", color: "#458ed0" },
-        { name: "Connectivity", color: "#36a798" },
-        { name: "Hardware", color: "#d59a4a" },
-        { name: "System", color: "#c86a75" }
+        { name: "Overview", color: "#458ed0", icon: "icons/overview.svg" },
+        { name: "Connectivity", color: "#36a798", icon: "icons/connectivity.svg" },
+        { name: "Hardware", color: "#d59a4a", icon: "icons/hardware.svg" },
+        { name: "System", color: "#c86a75", icon: "icons/system.svg" }
     ]
 
     property var categoryActions: ({
@@ -38,9 +38,9 @@ ApplicationWindow {
             { label: "USB devices", detail: "Connected USB", method: "usb.devices", accent: "#1976d2" }
         ],
         "Connectivity": [
-            { label: "Wi-Fi", detail: "Status, scan and connect", page: "wifi", accent: "#008b82" },
-            { label: "4G modem", detail: "Reserved for modem service", accent: "#66798e", available: false },
-            { label: "Ethernet", detail: "Reserved for Ethernet service", accent: "#66798e", available: false }
+            { label: "Wi-Fi", detail: "Status, scan and connect", page: "wifi", accent: "#008b82", icon: "icons/connectivity.svg" },
+            { label: "4G modem", detail: "Reserved for modem service", accent: "#66798e", available: false, icon: "icons/connectivity.svg" },
+            { label: "Ethernet", detail: "Reserved for Ethernet service", accent: "#66798e", available: false, icon: "icons/link.svg" }
         ],
         "Hardware": [
             { label: "Read PB4", detail: "GPIO input", method: "gpio.read", params: { port: "b", pin: 4 }, accent: "#d48620" },
@@ -175,9 +175,10 @@ ApplicationWindow {
                                 border.color: modelData.color; border.width: 2
                                 Rectangle { anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom; width: 8; radius: 4; color: modelData.color }
                             }
-                            contentItem: Text {
-                                anchors.centerIn: parent; width: parent.width - 32; text: categoryButton.text
-                                color: "white"; font: categoryButton.font; horizontalAlignment: Text.AlignHCenter
+                            contentItem: Row {
+                                anchors.centerIn: parent; spacing: 16
+                                Image { width: 42; height: 42; source: modelData.icon; fillMode: Image.PreserveAspectFit }
+                                Text { text: categoryButton.text; color: "white"; font: categoryButton.font; verticalAlignment: Text.AlignVCenter }
                             }
                             onClicked: window.openCategory(modelData.name)
                         }
@@ -194,7 +195,7 @@ ApplicationWindow {
                             Label { text: "Select a service"; color: "#92abc8"; font.pixelSize: 15 }
                             GridLayout { Layout.fillWidth: true; columns: 1; columnSpacing: 10; rowSpacing: 10
                                 Repeater { model: window.categoryActions[window.selectedCategory]
-                                    delegate: ActionButton { text: modelData.label; detail: modelData.detail || ""; accent: modelData.accent || "#1976d2"; enabled: !window.busy && modelData.available !== false
+                                    delegate: ActionButton { text: modelData.label; detail: modelData.detail || ""; iconSource: modelData.icon || ""; accent: modelData.accent || "#1976d2"; enabled: !window.busy && modelData.available !== false
                                         onTriggered: {
                                             if (modelData.page === "wifi") window.page = "wifi"
                                             else if (modelData.confirm === true) window.confirmAction(modelData.method, modelData.params || {}, modelData.label)
@@ -216,10 +217,10 @@ ApplicationWindow {
                         ColumnLayout { anchors.fill: parent; anchors.margins: 18; spacing: 12
                             Label { text: "Wi-Fi"; color: "white"; font.pixelSize: 28; font.bold: true }
                             Label { text: "Manage the wlan0 connection through boardd"; color: "#92c8c2"; font.pixelSize: 14 }
-                            ActionButton { text: "Status"; detail: "Current Wi-Fi link and IP"; accent: "#008b82"; enabled: !window.busy; onTriggered: window.callBoardd("wifi.status", {}, text) }
-                            ActionButton { text: "Scan networks"; detail: "Find nearby access points"; accent: "#008b82"; enabled: !window.busy; onTriggered: window.callBoardd("wifi.scan", {}, text) }
-                            ActionButton { text: "Connect"; detail: "Enter Wi-Fi name and password"; accent: "#1976d2"; enabled: !window.busy; onTriggered: wifiDialog.open() }
-                            ActionButton { text: "Disconnect"; detail: "Leave the current network"; accent: "#b36b3b"; enabled: !window.busy; onTriggered: window.callBoardd("wifi.disconnect", {}, text) }
+                            ActionButton { text: "Status"; detail: "Current Wi-Fi link and IP"; iconSource: "icons/connectivity.svg"; accent: "#008b82"; enabled: !window.busy; onTriggered: window.callBoardd("wifi.status", {}, text) }
+                            ActionButton { text: "Scan networks"; detail: "Find nearby access points"; iconSource: "icons/search.svg"; accent: "#008b82"; enabled: !window.busy; onTriggered: window.callBoardd("wifi.scan", {}, text) }
+                            ActionButton { text: "Connect"; detail: "Enter Wi-Fi name and password"; iconSource: "icons/link.svg"; accent: "#1976d2"; enabled: !window.busy; onTriggered: wifiDialog.open() }
+                            ActionButton { text: "Disconnect"; detail: "Leave the current network"; iconSource: "icons/link.svg"; accent: "#b36b3b"; enabled: !window.busy; onTriggered: window.callBoardd("wifi.disconnect", {}, text) }
                             RowLayout { Layout.fillWidth: true; spacing: 10
                                 ActionButton { Layout.fillWidth: true; text: "Enable radio"; accent: "#3b8c75"; enabled: !window.busy; onTriggered: window.callBoardd("wifi.enable", {}, text) }
                                 ActionButton { Layout.fillWidth: true; text: "Disable radio"; accent: "#7e4654"; enabled: !window.busy; onTriggered: window.callBoardd("wifi.disable", {}, text) }
