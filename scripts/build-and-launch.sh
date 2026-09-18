@@ -61,6 +61,10 @@ export BOARDD_SOCKET="$SOCKET_PATH"
 export BOARDD_QML_PATH="$QT_DIR/qml/Main.qml"
 export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-eglfs}"
 export QT_QPA_EGLFS_INTEGRATION="${QT_QPA_EGLFS_INTEGRATION:-none}"
+# The helperboard Qt/libinput combination emits repeated press-only events on
+# this board's touchscreen. Let EGLFS use its evdev path instead. Override with
+# QT_QPA_EGLFS_NO_LIBINPUT=0 only when a validated libinput configuration exists.
+export QT_QPA_EGLFS_NO_LIBINPUT="${QT_QPA_EGLFS_NO_LIBINPUT:-1}"
 
 echo "Launching Qt client on $QT_QPA_PLATFORM..."
 exec "$QT_DIR/build/boardd-qml-client"
