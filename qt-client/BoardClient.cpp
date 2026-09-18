@@ -5,7 +5,11 @@
 #include <QJsonObject>
 #include <QTimer>
 
-BoardClient::BoardClient(QObject *parent) : QObject(parent) {}
+BoardClient::BoardClient(QObject *parent) : QObject(parent) {
+    const QString configuredSocket = qEnvironmentVariable("BOARDD_SOCKET");
+    if (!configuredSocket.isEmpty())
+        m_socketPath = configuredSocket;
+}
 
 QString BoardClient::socketPath() const {
     return m_socketPath;
