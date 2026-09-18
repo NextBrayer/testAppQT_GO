@@ -122,26 +122,45 @@ ApplicationWindow {
         id: detailsDialog; modal: true; width: 820; height: 470
         x: (window.width - width) / 2; y: (window.height - height) / 2
         title: "Technical details"
-        standardButtons: Dialog.Close
-        background: Rectangle { radius: 14; color: "white"; border.color: "#d8e1eb" }
-        header: Label { text: detailsDialog.title; color: "#17243a"; font.pixelSize: 21; font.bold: true; padding: 20 }
-        contentItem: Flickable {
+        standardButtons: Dialog.NoButton
+        background: Rectangle { radius: 16; color: "#101c2d"; border.color: "#294968" }
+        header: Rectangle {
+            implicitHeight: 76; radius: 16; color: "#172b44"
+            Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 16; color: "#172b44" }
+            Column { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; anchors.leftMargin: 22; spacing: 2
+                Text { text: "Technical details"; color: "#f4f8ff"; font.pixelSize: 21; font.bold: true }
+                Text { text: "Raw boardd response"; color: "#9eb9d8"; font.pixelSize: 13 }
+            }
+        }
+        contentItem: Rectangle {
+            color: "#0a1320"; radius: 10; border.color: "#203b57"
+            Flickable {
             id: detailsFlickable
-            clip: true
-            contentWidth: width
-            contentHeight: detailsOutput.paintedHeight + 24
+            anchors.fill: parent; anchors.margins: 1
+            clip: true; contentWidth: width
+            contentHeight: Math.max(height, detailsOutput.paintedHeight + 28)
             boundsBehavior: Flickable.StopAtBounds
             Text {
                 id: detailsOutput
                 width: detailsFlickable.width - 24
                 x: 12; y: 12
                 text: window.detailsText
-                color: "#34465c"
+                color: "#d7e7fa"
                 font.family: "monospace"
                 font.pixelSize: 14
                 wrapMode: Text.WrapAnywhere
             }
-            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AlwaysOn }
+            }
+        }
+        footer: Rectangle {
+            implicitHeight: 64; color: "transparent"
+            RowLayout { anchors.fill: parent; anchors.margins: 12; spacing: 8
+                Label { Layout.fillWidth: true; text: "Scroll with touch, or use the arrows"; color: "#9eb9d8"; font.pixelSize: 13 }
+                Button { text: "Up"; onClicked: detailsFlickable.contentY = Math.max(0, detailsFlickable.contentY - 150) }
+                Button { text: "Down"; onClicked: detailsFlickable.contentY = Math.min(detailsFlickable.contentHeight - detailsFlickable.height, detailsFlickable.contentY + 150) }
+                Button { text: "Close"; onClicked: detailsDialog.close() }
+            }
         }
     }
 
