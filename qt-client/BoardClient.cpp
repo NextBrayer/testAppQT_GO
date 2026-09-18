@@ -60,16 +60,17 @@ void BoardClient::request(const QString &method, const QVariantMap &params) {
         socket->flush();
     });
     connect(socket, &QLocalSocket::readyRead, this, [this, socket]() {
-        QByteArray &buffer = m_buffers[socket];
+        // Each BoardClient request has its own socket and boardd sends one
+        // newline-delimited reply. Do not retain a hash-map reference here:
+        // handleResponse removes that map entry and would leave it dangling.
+        QByteArray buffer = m_buffers.value(socket);
         buffer.append(socket->readAll());
-        while (true) {
-            const int end = buffer.indexOf('\n');
-            if (end < 0)
-                break;
-            const QByteArray line = buffer.left(end);
-            buffer.remove(0, end + 1);
-            handleResponse(socket, line);
+        const int end = buffer.indexOf('\n');
+        if (end < 0) {
+            m_buffers.insert(socket, buffer);
+            return;
         }
+        handleResponse(socket, buffer.left(end));
     });
     // errorOccurred was added in newer Qt 5 releases. Use the older signal so
     // the app remains binary-compatible with the board's helperboard Qt 5 SDK.
@@ -77,8 +78,10 @@ void BoardClient::request(const QString &method, const QVariantMap &params) {
         fail(socket, socket->errorString());
     });
 
-    // A missing/stalled service must not leave the QML UI permanently busy.
-    QTimer::singleShot(10000, socket, [this, socket]() {
+    // boardd permits board commands to run for up to 30 seconds. Give them
+    // enough time to return instead of racing a legitimate slow operation
+    // such as Wi-Fi scanning or a vendor GPIO utility.
+    QTimer::singleShot(45000, socket, [this, socket]() {
         if (m_requestIDs.contains(socket))
             fail(socket, QStringLiteral("boardd request timed out"));
     });
@@ -87,6 +90,11 @@ void BoardClient::request(const QString &method, const QVariantMap &params) {
 }
 
 void BoardClient::handleResponse(QLocalSocket *socket, const QByteArray &line) {
+    // The timeout or an earlier socket error may already have completed this
+    // request. A late reply must be ignored rather than touching cleared state.
+    if (!m_requestIDs.contains(socket))
+        return;
+
     QJsonParseError parseError;
     const QJsonDocument document = QJsonDocument::fromJson(line, &parseError);
     if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
