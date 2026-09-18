@@ -42,5 +42,6 @@ cmake --build build -j"$(nproc)"
 The UI sends direct JSON requests to `boardd`, including health, battery,
 network, USB, Wi-Fi status/scan, and GPIO PB4 read/write.
 
-`Main.qml` is deployed as a normal file. Set `BOARDD_QML_PATH` when it is not
-located at `../qml/Main.qml` relative to the executable.
+`Main.qml` is deployed as a normal file rather than a Qt resource. Set
+`BOARDD_QML_PATH` when it is not located at `../qml/Main.qml` relative to the
+executable.

@@ -8,13 +8,10 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(Qt5 5.12 REQUIRED COMPONENTS Quick Qml Network)
 
-qt5_add_resources(QML_RESOURCES resources.qrc)
-
 add_executable(boardd-qml-client
     main.cpp
     BoardClient.cpp
     BoardClient.h
-    ${QML_RESOURCES}
 )
 
 target_link_libraries(boardd-qml-client PRIVATE Qt5::Quick Qt5::Qml Qt5::Network)

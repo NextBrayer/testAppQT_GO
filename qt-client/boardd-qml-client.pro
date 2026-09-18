@@ -12,5 +12,3 @@ SOURCES += \
 
 HEADERS += \
     BoardClient.h
-
-RESOURCES += resources.qrc

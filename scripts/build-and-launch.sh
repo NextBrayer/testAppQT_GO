@@ -14,14 +14,21 @@ if [[ "${EUID}" -ne 0 ]]; then
   exec sudo --preserve-env=BOARDD_SOCKET,BOARDD_LOG "$0" "$@"
 fi
 
-command -v go >/dev/null || { echo "Missing Go compiler." >&2; exit 1; }
 command -v cmake >/dev/null || { echo "Missing CMake." >&2; exit 1; }
 
-echo "Building boardd..."
-(
-  cd "$BOARDD_DIR"
-  CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o boardd .
-)
+if command -v go >/dev/null; then
+  echo "Building boardd..."
+  (
+    cd "$BOARDD_DIR"
+    CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o boardd .
+  )
+elif [[ -x "$BOARDD_DIR/boardd" ]]; then
+  echo "Go is not installed; using prebuilt $BOARDD_DIR/boardd"
+else
+  echo "Missing Go compiler and prebuilt boardd binary." >&2
+  echo "Install Go (apt install golang-go) or copy a Linux ARM64 boardd binary into $BOARDD_DIR." >&2
+  exit 1
+fi
 
 echo "Building Qt client..."
 cmake -S "$QT_DIR" -B "$QT_DIR/build" -DCMAKE_BUILD_TYPE=Release
@@ -44,7 +51,10 @@ fi
 # The board image provides display plugins and QML runtime in this location.
 if [[ -f /usr/helperboard/qt_env.sh ]]; then
   # shellcheck disable=SC1091
+  # Vendor script expands LD_LIBRARY_PATH even when it is initially unset.
+  set +u
   source /usr/helperboard/qt_env.sh
+  set -u
 fi
 
 export BOARDD_SOCKET="$SOCKET_PATH"
