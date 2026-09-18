@@ -9,7 +9,7 @@ ApplicationWindow {
     minimumWidth: width; maximumWidth: width
     minimumHeight: height; maximumHeight: height
     visible: true
-    title: "Board Platform"
+    title: "Test Platform"
     color: "#f4f7fb"
 
     property bool busy: false
@@ -46,6 +46,7 @@ ApplicationWindow {
         ],
         "Hardware": [
             { label: "GPIO", detail: "Select port and pin", page: "gpio", accent: "#e49a35", icon: "icons/hardware.svg" },
+            { label: "Touch test", detail: "Draw anywhere on the screen", page: "touch", accent: "#e49a35", icon: "icons/hardware.svg" },
             { label: "I2C bus", detail: "Coming soon", accent: "#aab5c2", available: false, icon: "icons/hardware.svg" },
             { label: "UART ports", detail: "Coming soon", accent: "#aab5c2", available: false, icon: "icons/hardware.svg" }
         ],
@@ -68,7 +69,7 @@ ApplicationWindow {
     }
     function goHome() { page = "home"; selectedCategory = "" }
     function openCategory(name) { selectedCategory = name; page = "category" }
-    function back() { page === "wifi" || page === "time" ? page = "category" : goHome() }
+    function back() { page === "wifi" || page === "time" || page === "touch" ? page = "category" : goHome() }
     function confirmAction(method, params, label) { pendingMethod = method; pendingParams = params; pendingLabel = label; confirmDialog.open() }
     function openWiFiConnect(ssid) {
         ssidInput.text = ssid || ""
@@ -233,7 +234,7 @@ ApplicationWindow {
             RowLayout {
                 anchors.fill: parent; anchors.margins: 15; spacing: 14
                 Button { visible: window.page !== "home"; text: "Back"; onClicked: window.back() }
-                Label { Layout.fillWidth: true; text: "Board Platform"; color: "#17243a"; font.pixelSize: 26; font.bold: true }
+                Label { Layout.fillWidth: true; text: "Test Platform"; color: "#17243a"; font.pixelSize: 26; font.bold: true }
                 Label { text: window.currentTime; color: "#17243a"; font.pixelSize: 25; font.bold: true }
                 Rectangle { Layout.preferredWidth: 110; Layout.preferredHeight: 32; radius: 16; color: window.busy ? "#e49a35" : "#22a06b"
                     Label { anchors.centerIn: parent; text: window.busy ? "WORKING" : "ONLINE"; color: "white"; font.pixelSize: 12; font.bold: true }
@@ -243,12 +244,9 @@ ApplicationWindow {
 
         StackLayout {
             Layout.fillWidth: true; Layout.fillHeight: true
-            currentIndex: window.page === "home" ? 0 : (window.page === "category" ? 1 : (window.page === "wifi" ? 2 : 3))
+            currentIndex: window.page === "home" ? 0 : (window.page === "category" ? 1 : (window.page === "wifi" ? 2 : (window.page === "time" ? 3 : 4)))
             Item {
-                ColumnLayout { anchors.fill: parent; spacing: 12
-                    Label { text: "Services"; color: "#17243a"; font.pixelSize: 30; font.bold: true }
-                    Label { text: "Select a category"; color: "#708096"; font.pixelSize: 15 }
-                    GridLayout { Layout.fillWidth: true; Layout.fillHeight: true; columns: 2; columnSpacing: 12; rowSpacing: 12
+                GridLayout { anchors.fill: parent; columns: 2; columnSpacing: 12; rowSpacing: 12
                         Repeater { model: window.categories
                             delegate: Button {
                                 id: categoryButton; Layout.fillWidth: true; Layout.fillHeight: true; text: modelData.name; font.pixelSize: 24; font.bold: true
@@ -263,7 +261,6 @@ ApplicationWindow {
                                 onClicked: window.openCategory(modelData.name)
                             }
                         }
-                    }
                 }
             }
 
@@ -278,6 +275,7 @@ ApplicationWindow {
                                     if (modelData.page === "wifi") window.page = "wifi"
                                     else if (modelData.page === "gpio") gpioDialog.open()
                                     else if (modelData.page === "time") window.page = "time"
+                                    else if (modelData.page === "touch") window.page = "touch"
                                     else if (modelData.confirm) window.confirmAction(modelData.method, modelData.params || {}, modelData.label)
                                     else window.callBoardd(modelData.method, modelData.params || {}, modelData.label)
                                 }
@@ -314,6 +312,77 @@ ApplicationWindow {
                         ActionButton { text: "Sync NTP"; detail: "Synchronize with pool.ntp.org"; iconSource: "icons/connectivity.svg"; accent: "#14a38b"; enabled: !window.busy; onTriggered: window.callBoardd("time.ntp.sync", {}, text) }
                     }
                     Loader { Layout.fillWidth: true; Layout.preferredHeight: 112; sourceComponent: responseSummary }
+                }
+            }
+
+            Item {
+                Rectangle {
+                    anchors.fill: parent; radius: 16; color: "white"; border.color: "#dbe3ed"
+                    Canvas {
+                        id: touchCanvas
+                        anchors.fill: parent
+                        anchors.margins: 1
+                        property var strokes: []
+                        property int activeStroke: -1
+
+                        function startStroke(x, y) {
+                            strokes.push([{ x: x, y: y }])
+                            activeStroke = strokes.length - 1
+                            requestPaint()
+                        }
+                        function continueStroke(x, y) {
+                            if (activeStroke < 0) return
+                            strokes[activeStroke].push({ x: x, y: y })
+                            requestPaint()
+                        }
+                        function endStroke() { activeStroke = -1 }
+                        function clearDrawing() { strokes = []; activeStroke = -1; requestPaint() }
+
+                        onPaint: {
+                            var ctx = getContext("2d")
+                            ctx.clearRect(0, 0, width, height)
+                            ctx.lineWidth = 5
+                            ctx.lineCap = "round"
+                            ctx.lineJoin = "round"
+                            ctx.strokeStyle = "#2f80ed"
+                            for (var i = 0; i < strokes.length; ++i) {
+                                var stroke = strokes[i]
+                                if (stroke.length === 0) continue
+                                if (stroke.length === 1) {
+                                    ctx.beginPath()
+                                    ctx.arc(stroke[0].x, stroke[0].y, 2.5, 0, Math.PI * 2)
+                                    ctx.fillStyle = "#2f80ed"
+                                    ctx.fill()
+                                    continue
+                                }
+                                ctx.beginPath()
+                                ctx.moveTo(stroke[0].x, stroke[0].y)
+                                for (var j = 1; j < stroke.length; ++j)
+                                    ctx.lineTo(stroke[j].x, stroke[j].y)
+                                ctx.stroke()
+                            }
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onPressed: touchCanvas.startStroke(mouse.x, mouse.y)
+                            onPositionChanged: if (pressed) touchCanvas.continueStroke(mouse.x, mouse.y)
+                            onReleased: touchCanvas.endStroke()
+                        }
+                    }
+                    Rectangle {
+                        anchors.left: parent.left; anchors.top: parent.top; anchors.margins: 16
+                        width: 270; height: 74; radius: 12; color: "#ffffff"; border.color: "#dbe3ed"
+                        Column { anchors.fill: parent; anchors.margins: 12; spacing: 3
+                            Text { text: "Touch test"; color: "#17243a"; font.pixelSize: 20; font.bold: true }
+                            Text { text: "Draw anywhere on the screen"; color: "#708096"; font.pixelSize: 13 }
+                        }
+                    }
+                    Button {
+                        anchors.right: parent.right; anchors.top: parent.top; anchors.margins: 16
+                        text: "Clear drawing"
+                        onClicked: touchCanvas.clearDrawing()
+                    }
                 }
             }
         }
