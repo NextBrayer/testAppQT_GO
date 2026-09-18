@@ -203,6 +203,15 @@ func connectWiFi(params wifiConnectParams) (wifiStatus, error) {
 	return getWiFiStatus()
 }
 
+// disconnectWiFi leaves the radio enabled.  It only disconnects the active AP,
+// which is different from wifi.disable (that brings the wlan interface down).
+func disconnectWiFi() (wifiStatus, error) {
+	if _, err := runCommand(wpaCLICommand(), "-i", wifiInterface(), "disconnect"); err != nil {
+		return wifiStatus{}, err
+	}
+	return getWiFiStatus()
+}
+
 func setWiFiEnabled(enabled bool) (wifiStatus, error) {
 	state := "down"
 	if enabled {

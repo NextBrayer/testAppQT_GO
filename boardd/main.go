@@ -177,6 +177,12 @@ func dispatch(req request) response {
 			return response{ID: req.ID, OK: false, Error: err.Error()}
 		}
 		return response{ID: req.ID, OK: true, Result: value}
+	case "wifi.disconnect":
+		value, err := disconnectWiFi()
+		if err != nil {
+			return response{ID: req.ID, OK: false, Error: err.Error()}
+		}
+		return response{ID: req.ID, OK: true, Result: value}
 	case "wifi.enable":
 		value, err := setWiFiEnabled(true)
 		if err != nil {
