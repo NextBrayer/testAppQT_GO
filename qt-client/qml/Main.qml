@@ -19,17 +19,52 @@ ApplicationWindow {
     property string pendingMethod: ""
     property var pendingParams: ({})
     property string pendingLabel: ""
+    property string selectedCategory: "Overview"
+    property var categories: ["Overview", "Connectivity", "Hardware", "System"]
+
+    // Extend this data only when a matching boardd method exists.
+    property var actionGroups: ({
+        "Overview": [
+            { label: "System health", detail: "Service and uptime", method: "health.get", params: {}, accent: "#1976d2" },
+            { label: "Battery", detail: "Power supply values", method: "battery.get", params: {}, accent: "#7956cf" },
+            { label: "Network", detail: "All interfaces", method: "network.status", params: {}, accent: "#1976d2" },
+            { label: "USB devices", detail: "Connected USB", method: "usb.devices", params: {}, accent: "#1976d2" }
+        ],
+        "Connectivity": [
+            { label: "Wi-Fi status", detail: "Link and IP address", method: "wifi.status", params: {}, accent: "#008b82" },
+            { label: "Wi-Fi scan", detail: "Nearby access points", method: "wifi.scan", params: {}, accent: "#008b82" },
+            { label: "4G modem", detail: "Coming soon", accent: "#66798e", available: false },
+            { label: "Ethernet", detail: "Coming soon", accent: "#66798e", available: false }
+        ],
+        "Hardware": [
+            { label: "Read PB4", detail: "GPIO input", method: "gpio.read", params: { port: "b", pin: 4 }, accent: "#d48620" },
+            { label: "Set PB4 high", detail: "GPIO output", method: "gpio.write", params: { port: "b", pin: 4, value: 1 }, accent: "#c65252", confirm: true },
+            { label: "I2C bus", detail: "Coming soon", accent: "#66798e", available: false },
+            { label: "UART ports", detail: "Coming soon", accent: "#66798e", available: false },
+            { label: "Touch panel", detail: "Coming soon", accent: "#66798e", available: false },
+            { label: "Camera", detail: "Coming soon", accent: "#66798e", available: false }
+        ],
+        "System": [
+            { label: "Reboot", detail: "Restart the board", method: "power.reboot", params: { confirm: true }, accent: "#a54b4b", confirm: true },
+            { label: "Power off", detail: "Shut down the board", method: "power.poweroff", params: { confirm: true }, accent: "#813346", confirm: true }
+        ]
+    })
 
     function callBoardd(method, params, label) {
         if (busy) return
         busy = true
         responseTitle = label || method
-        responseText = "Sending request…"
+        responseText = "Sending request..."
         board.request(method, params || {})
     }
     function confirmAction(method, params, label) {
         pendingMethod = method; pendingParams = params; pendingLabel = label
         confirmDialog.open()
+    }
+    function showUnavailable(label) {
+        responseOK = false
+        responseTitle = label
+        responseText = "This feature is reserved in the generic dashboard, but its boardd method is not implemented yet."
     }
 
     BoardClient {
@@ -37,7 +72,7 @@ ApplicationWindow {
         onResponseReceived: function(id, method, ok, resultText, error) {
             window.busy = false
             window.responseOK = ok
-            window.responseTitle = (ok ? "Completed · " : "Failed · ") + method
+            window.responseTitle = (ok ? "Completed: " : "Failed: ") + method
             window.responseText = ok ? resultText : "Error: " + error
         }
     }
@@ -51,7 +86,7 @@ ApplicationWindow {
         background: Rectangle { radius: 14; color: "#17263d"; border.color: "#5077a8" }
         header: Label { text: confirmDialog.title; color: "white"; font.pixelSize: 21; font.bold: true; padding: 20 }
         contentItem: Label {
-            text: "Run “" + window.pendingLabel + "”?\n\nThis command changes board hardware or system state."
+            text: "Run '" + window.pendingLabel + "'?\n\nThis command changes board hardware or system state."
             color: "#d7e7fa"; font.pixelSize: 16; wrapMode: Text.WordWrap; padding: 20
         }
         onAccepted: window.callBoardd(window.pendingMethod, window.pendingParams, window.pendingLabel)
@@ -59,7 +94,6 @@ ApplicationWindow {
 
     ColumnLayout {
         anchors.fill: parent; anchors.margins: 18; spacing: 14
-
         Rectangle {
             Layout.fillWidth: true; Layout.preferredHeight: 76; radius: 14
             color: "#122741"; border.color: "#2d527d"; border.width: 1
@@ -68,7 +102,7 @@ ApplicationWindow {
                 Rectangle {
                     Layout.preferredWidth: 42; Layout.preferredHeight: 42; radius: 21
                     color: window.busy ? "#f2a93b" : "#2bd58b"
-                    Label { anchors.centerIn: parent; text: window.busy ? "…" : "✓"; color: "#062419"; font.pixelSize: 27; font.bold: true }
+                    Label { anchors.centerIn: parent; text: window.busy ? "..." : "OK"; color: "#062419"; font.pixelSize: 16; font.bold: true }
                 }
                 ColumnLayout {
                     Layout.fillWidth: true; spacing: 1
@@ -90,25 +124,48 @@ ApplicationWindow {
                 color: "#101f34"; border.color: "#294a70"; border.width: 1
                 ColumnLayout {
                     anchors.fill: parent; anchors.margins: 16; spacing: 10
-                    Label { text: "Quick diagnostics"; color: "white"; font.pixelSize: 20; font.bold: true }
-                    Label { text: "Native boardd service commands"; color: "#92abc8"; font.pixelSize: 13 }
+                    Label { text: window.selectedCategory; color: "white"; font.pixelSize: 20; font.bold: true }
+                    Label { text: "Native boardd service actions"; color: "#92abc8"; font.pixelSize: 13 }
+                    RowLayout {
+                        Layout.fillWidth: true; spacing: 5
+                        Repeater {
+                            model: window.categories
+                            delegate: Button {
+                                Layout.fillWidth: true
+                                text: modelData
+                                font.pixelSize: 12; font.bold: true
+                                enabled: !window.busy
+                                background: Rectangle {
+                                    radius: 7
+                                    color: window.selectedCategory === modelData ? "#1976d2" : "#203952"
+                                    border.color: window.selectedCategory === modelData ? "#6cafea" : "#365675"
+                                }
+                                contentItem: Text { text: parent.text; color: "white"; font: parent.font; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight }
+                                onClicked: window.selectedCategory = modelData
+                            }
+                        }
+                    }
                     GridLayout {
                         Layout.fillWidth: true; columns: 2; columnSpacing: 10; rowSpacing: 10
-                        ActionButton { text: "System health"; accent: "#1976d2"; enabled: !window.busy; onTriggered: window.callBoardd("health.get", {}, text) }
-                        ActionButton { text: "Battery"; accent: "#7956cf"; enabled: !window.busy; onTriggered: window.callBoardd("battery.get", {}, text) }
-                        ActionButton { text: "Network"; accent: "#1976d2"; enabled: !window.busy; onTriggered: window.callBoardd("network.status", {}, text) }
-                        ActionButton { text: "USB devices"; accent: "#1976d2"; enabled: !window.busy; onTriggered: window.callBoardd("usb.devices", {}, text) }
-                        ActionButton { text: "Wi-Fi status"; accent: "#008b82"; enabled: !window.busy; onTriggered: window.callBoardd("wifi.status", {}, text) }
-                        ActionButton { text: "Wi-Fi scan"; accent: "#008b82"; enabled: !window.busy; onTriggered: window.callBoardd("wifi.scan", {}, text) }
-                        ActionButton { text: "Read PB4"; accent: "#d48620"; enabled: !window.busy; onTriggered: window.callBoardd("gpio.read", { port: "b", pin: 4 }, text) }
-                        ActionButton { text: "Set PB4 high"; accent: "#c65252"; enabled: !window.busy; onTriggered: window.confirmAction("gpio.write", { port: "b", pin: 4, value: 1 }, text) }
+                        Repeater {
+                            model: window.actionGroups[window.selectedCategory]
+                            delegate: ActionButton {
+                                text: modelData.label
+                                detail: modelData.detail || ""
+                                accent: modelData.accent || "#1976d2"
+                                enabled: !window.busy && modelData.available !== false
+                                onTriggered: {
+                                    if (modelData.available === false)
+                                        window.showUnavailable(modelData.label)
+                                    else if (modelData.confirm === true)
+                                        window.confirmAction(modelData.method, modelData.params || {}, modelData.label)
+                                    else
+                                        window.callBoardd(modelData.method, modelData.params || {}, modelData.label)
+                                }
+                            }
+                        }
                     }
                     Item { Layout.fillHeight: true }
-                    RowLayout {
-                        Layout.fillWidth: true; spacing: 10
-                        ActionButton { Layout.fillWidth: true; text: "Reboot"; accent: "#a54b4b"; enabled: !window.busy; onTriggered: window.confirmAction("power.reboot", { confirm: true }, text) }
-                        ActionButton { Layout.fillWidth: true; text: "Power off"; accent: "#813346"; enabled: !window.busy; onTriggered: window.confirmAction("power.poweroff", { confirm: true }, text) }
-                    }
                 }
             }
 
