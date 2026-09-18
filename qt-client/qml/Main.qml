@@ -10,7 +10,7 @@ ApplicationWindow {
     minimumHeight: height; maximumHeight: height
     visible: true
     title: "Board Platform"
-    color: "#0b1220"
+    color: "#f3f6fa"
 
     property bool busy: false
     property bool responseOK: true
@@ -94,9 +94,9 @@ ApplicationWindow {
         x: (window.width - width) / 2; y: (window.height - height) / 2
         title: "Confirm hardware action"
         standardButtons: Dialog.Cancel | Dialog.Ok
-        background: Rectangle { radius: 14; color: "#17263d"; border.color: "#5077a8" }
-        header: Label { text: confirmDialog.title; color: "white"; font.pixelSize: 21; font.bold: true; padding: 20 }
-        contentItem: Label { text: "Run '" + window.pendingLabel + "'?\n\nThis command changes board hardware or system state."; color: "#d7e7fa"; font.pixelSize: 16; wrapMode: Text.WordWrap; padding: 20 }
+        background: Rectangle { radius: 14; color: "white"; border.color: "#d7e1ed" }
+        header: Label { text: confirmDialog.title; color: "#17243a"; font.pixelSize: 21; font.bold: true; padding: 20 }
+        contentItem: Label { text: "Run '" + window.pendingLabel + "'?\n\nThis command changes board hardware or system state."; color: "#53657a"; font.pixelSize: 16; wrapMode: Text.WordWrap; padding: 20 }
         onAccepted: window.callBoardd(window.pendingMethod, window.pendingParams, window.pendingLabel)
     }
 
@@ -106,24 +106,24 @@ ApplicationWindow {
         x: (window.width - width) / 2; y: (window.height - height) / 2
         title: "Connect Wi-Fi"
         standardButtons: Dialog.Cancel | Dialog.Ok
-        background: Rectangle { radius: 14; color: "#17263d"; border.color: "#2e9c91" }
-        header: Label { text: wifiDialog.title; color: "white"; font.pixelSize: 21; font.bold: true; padding: 20 }
+        background: Rectangle { radius: 14; color: "white"; border.color: "#cde0eb" }
+        header: Label { text: wifiDialog.title; color: "#17243a"; font.pixelSize: 21; font.bold: true; padding: 20 }
         contentItem: ColumnLayout {
             spacing: 10
-            Label { text: "Enter the access point details"; color: "#b8d9d5"; font.pixelSize: 14 }
+            Label { text: "Enter the access point details"; color: "#53657a"; font.pixelSize: 14 }
             TextField {
                 id: ssidInput; Layout.fillWidth: true; placeholderText: "Wi-Fi name (SSID)"; focus: true
-                color: "white"; selectByMouse: true
-                background: Rectangle { radius: 8; color: "#0a1726"; border.color: ssidInput.activeFocus ? "#31b6a8" : "#47657f" }
+                color: "#17243a"; selectByMouse: true
+                background: Rectangle { radius: 8; color: "#f8fafc"; border.color: ssidInput.activeFocus ? "#246bdb" : "#cfd9e5" }
                 onActiveFocusChanged: if (activeFocus) Qt.inputMethod.show()
             }
             TextField {
                 id: passwordInput; Layout.fillWidth: true; placeholderText: "Password (empty for open network)"; echoMode: TextInput.Password
-                color: "white"; selectByMouse: true
-                background: Rectangle { radius: 8; color: "#0a1726"; border.color: passwordInput.activeFocus ? "#31b6a8" : "#47657f" }
+                color: "#17243a"; selectByMouse: true
+                background: Rectangle { radius: 8; color: "#f8fafc"; border.color: passwordInput.activeFocus ? "#246bdb" : "#cfd9e5" }
                 onActiveFocusChanged: if (activeFocus) Qt.inputMethod.show()
             }
-            Label { text: "Use a USB keyboard, or the platform virtual keyboard when installed."; color: "#8fa9c2"; font.pixelSize: 12; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+            Label { text: "Use a USB keyboard, or the platform virtual keyboard when installed."; color: "#708096"; font.pixelSize: 12; wrapMode: Text.WordWrap; Layout.fillWidth: true }
         }
         onOpened: { ssidInput.forceActiveFocus(); Qt.inputMethod.show() }
         onAccepted: {
@@ -137,25 +137,21 @@ ApplicationWindow {
         anchors.fill: parent; anchors.margins: 18; spacing: 14
         Rectangle {
             Layout.fillWidth: true; Layout.preferredHeight: 70; radius: 14
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: "#162943" }
-                GradientStop { position: 1.0; color: "#101e33" }
-            }
-            border.color: "#294761"; border.width: 1
+            color: "#ffffff"; border.color: "#dce4ee"; border.width: 1
             RowLayout {
                 anchors.fill: parent; anchors.margins: 15; spacing: 14
                 Button {
                     visible: window.page !== "home"; enabled: !window.busy; text: "Back"; font.bold: true
-                    background: Rectangle { radius: 8; color: "#203952"; border.color: "#477496" }
-                    contentItem: Text { text: parent.text; color: "white"; font: parent.font; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
+                    background: Rectangle { radius: 8; color: "#eef4fb"; border.color: "#cbd9e8" }
+                    contentItem: Text { text: parent.text; color: "#246bdb"; font: parent.font; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
                     onClicked: window.page === "wifi" ? window.page = "category" : window.goHome()
                 }
                 ColumnLayout { Layout.fillWidth: true; spacing: 0
-                    Label { text: "Board Platform"; color: "#f5f9ff"; font.pixelSize: 26; font.bold: true }
-                    Label { text: "Device service console"; color: "#8ba8c5"; font.pixelSize: 13 }
+                    Label { text: "Board Platform"; color: "#17243a"; font.pixelSize: 26; font.bold: true }
+                    Label { text: "Device service console"; color: "#708096"; font.pixelSize: 13 }
                 }
-                Label { text: window.currentTime; color: "#f5f9ff"; font.pixelSize: 25; font.bold: true }
-                Rectangle { Layout.preferredWidth: 112; Layout.preferredHeight: 34; radius: 17; color: window.busy ? "#70501b" : "#12533b"
+                Label { text: window.currentTime; color: "#17243a"; font.pixelSize: 25; font.bold: true }
+                Rectangle { Layout.preferredWidth: 112; Layout.preferredHeight: 34; radius: 17; color: window.busy ? "#e49c35" : "#28a879"
                     Label { anchors.centerIn: parent; text: window.busy ? "WORKING" : "CONNECTED"; color: "white"; font.pixelSize: 12; font.bold: true }
                 }
             }
@@ -167,16 +163,16 @@ ApplicationWindow {
 
             Item {
                 ColumnLayout { anchors.fill: parent; spacing: 12
-                    Label { text: "Services"; color: "#f5f9ff"; font.pixelSize: 28; font.bold: true }
-                    Label { text: "Choose a device service"; color: "#92abc8"; font.pixelSize: 15 }
+                    Label { text: "Services"; color: "#17243a"; font.pixelSize: 28; font.bold: true }
+                    Label { text: "Choose a device service"; color: "#708096"; font.pixelSize: 15 }
                     GridLayout { Layout.fillWidth: true; Layout.fillHeight: true; columns: 2; columnSpacing: 12; rowSpacing: 12
                     Repeater { model: window.categories
                         delegate: Button {
                             id: categoryButton
                             Layout.fillWidth: true; Layout.fillHeight: true; text: modelData.name; font.pixelSize: 26; font.bold: true
                             background: Rectangle {
-                                radius: 14; color: categoryButton.down ? "#1b3048" : "#121f31"
-                                border.color: categoryButton.hovered ? modelData.color : "#28425c"; border.width: 1
+                                radius: 14; color: categoryButton.down ? "#eef4fb" : "#ffffff"
+                                border.color: categoryButton.hovered ? modelData.color : "#dbe3ed"; border.width: 1
                                 Rectangle { anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom; width: 6; radius: 3; color: modelData.color }
                             }
                             contentItem: Row {
@@ -184,7 +180,7 @@ ApplicationWindow {
                                 Rectangle { width: 56; height: 56; radius: 28; color: modelData.color
                                     Image { anchors.centerIn: parent; width: 30; height: 30; source: modelData.icon; fillMode: Image.PreserveAspectFit }
                                 }
-                                Text { text: categoryButton.text; color: "white"; font: categoryButton.font; verticalAlignment: Text.AlignVCenter }
+                                Text { text: categoryButton.text; color: "#17243a"; font: categoryButton.font; verticalAlignment: Text.AlignVCenter }
                             }
                             onClicked: window.openCategory(modelData.name)
                         }
@@ -195,10 +191,10 @@ ApplicationWindow {
 
             Item {
                 RowLayout { anchors.fill: parent; spacing: 14
-                    Rectangle { Layout.preferredWidth: 500; Layout.fillHeight: true; radius: 14; color: "#101c2d"; border.color: "#294a70"
+                    Rectangle { Layout.preferredWidth: 500; Layout.fillHeight: true; radius: 14; color: "#ffffff"; border.color: "#dbe3ed"
                         ColumnLayout { anchors.fill: parent; anchors.margins: 18; spacing: 10
-                            Label { text: window.selectedCategory; color: "white"; font.pixelSize: 28; font.bold: true }
-                            Label { text: "Select a service"; color: "#92abc8"; font.pixelSize: 15 }
+                            Label { text: window.selectedCategory; color: "#17243a"; font.pixelSize: 28; font.bold: true }
+                            Label { text: "Select a service"; color: "#708096"; font.pixelSize: 15 }
                             GridLayout { Layout.fillWidth: true; columns: 1; columnSpacing: 10; rowSpacing: 10
                                 Repeater { model: window.categoryActions[window.selectedCategory]
                                     delegate: ActionButton { text: modelData.label; detail: modelData.detail || ""; iconSource: modelData.icon || ""; accent: modelData.accent || "#1976d2"; enabled: !window.busy && modelData.available !== false
@@ -219,10 +215,10 @@ ApplicationWindow {
 
             Item {
                 RowLayout { anchors.fill: parent; spacing: 14
-                    Rectangle { Layout.preferredWidth: 500; Layout.fillHeight: true; radius: 14; color: "#101c2d"; border.color: "#2d756e"
+                    Rectangle { Layout.preferredWidth: 500; Layout.fillHeight: true; radius: 14; color: "#ffffff"; border.color: "#cde0eb"
                         ColumnLayout { anchors.fill: parent; anchors.margins: 18; spacing: 12
-                            Label { text: "Wi-Fi"; color: "white"; font.pixelSize: 28; font.bold: true }
-                            Label { text: "Manage the wlan0 connection through boardd"; color: "#92c8c2"; font.pixelSize: 14 }
+                            Label { text: "Wi-Fi"; color: "#17243a"; font.pixelSize: 28; font.bold: true }
+                            Label { text: "Manage the wlan0 connection through boardd"; color: "#708096"; font.pixelSize: 14 }
                             ActionButton { text: "Status"; detail: "Current Wi-Fi link and IP"; iconSource: "icons/connectivity.svg"; accent: "#008b82"; enabled: !window.busy; onTriggered: window.callBoardd("wifi.status", {}, text) }
                             ActionButton { text: "Scan networks"; detail: "Find nearby access points"; iconSource: "icons/search.svg"; accent: "#008b82"; enabled: !window.busy; onTriggered: window.callBoardd("wifi.scan", {}, text) }
                             ActionButton { text: "Connect"; detail: "Enter Wi-Fi name and password"; iconSource: "icons/link.svg"; accent: "#1976d2"; enabled: !window.busy; onTriggered: wifiDialog.open() }
@@ -243,15 +239,15 @@ ApplicationWindow {
     Component {
         id: responsePanel
         Rectangle {
-        radius: 14; color: "#101c2d"; border.color: window.responseOK ? "#294b68" : "#944e58"; border.width: 1
+        radius: 14; color: "#ffffff"; border.color: window.responseOK ? "#dbe3ed" : "#eaa4ab"; border.width: 1
         ColumnLayout { anchors.fill: parent; anchors.margins: 18; spacing: 12
             RowLayout { Layout.fillWidth: true
-                Label { Layout.fillWidth: true; text: window.responseTitle; color: window.responseOK ? "#9bd6ff" : "#ffb1b8"; font.pixelSize: 20; font.bold: true; elide: Text.ElideRight }
+                Label { Layout.fillWidth: true; text: window.responseTitle; color: window.responseOK ? "#246bdb" : "#c44d59"; font.pixelSize: 20; font.bold: true; elide: Text.ElideRight }
                 BusyIndicator { running: window.busy; visible: running; Layout.preferredWidth: 28; Layout.preferredHeight: 28 }
             }
-            Rectangle { Layout.fillWidth: true; Layout.fillHeight: true; radius: 10; color: "#07101c"; border.color: "#1d3650"; clip: true
+            Rectangle { Layout.fillWidth: true; Layout.fillHeight: true; radius: 10; color: "#f6f8fb"; border.color: "#e2e8f0"; clip: true
                 Flickable { anchors.fill: parent; anchors.margins: 14; contentWidth: width; contentHeight: output.paintedHeight; clip: true
-                    Text { id: output; width: parent.width; text: window.responseText; color: "#d8e8fa"; font.family: "monospace"; font.pixelSize: 15; wrapMode: Text.WrapAnywhere }
+                    Text { id: output; width: parent.width; text: window.responseText; color: "#34465c"; font.family: "monospace"; font.pixelSize: 15; wrapMode: Text.WrapAnywhere }
                 }
             }
         }
