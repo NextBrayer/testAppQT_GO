@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -49,6 +50,20 @@ type wifiStatus struct {
 
 type powerParams struct {
 	Confirm bool `json:"confirm"`
+}
+
+type timeSetParams struct {
+	DateTime string `json:"dateTime"`
+	Timezone string `json:"timezone"`
+}
+
+type ntpSyncParams struct {
+	Server string `json:"server"`
+}
+
+type timeStatus struct {
+	CurrentTime string `json:"currentTime"`
+	Timezone    string `json:"timezone"`
 }
 
 func readGPIO(params gpioReadParams) (gpioValue, error) {
@@ -221,6 +236,67 @@ func setWiFiEnabled(enabled bool) (wifiStatus, error) {
 		return wifiStatus{}, err
 	}
 	return getWiFiStatus()
+}
+
+func getTimeStatus() (timeStatus, error) {
+	timezone := "UTC"
+	if target, err := os.Readlink("/etc/localtime"); err == nil {
+		const zoneInfoPrefix = "/usr/share/zoneinfo/"
+		if strings.HasPrefix(target, zoneInfoPrefix) {
+			timezone = strings.TrimPrefix(target, zoneInfoPrefix)
+		}
+	}
+	now := time.Now()
+	if location, err := time.LoadLocation(timezone); err == nil {
+		now = now.In(location)
+	}
+	return timeStatus{CurrentTime: now.Format(time.RFC3339), Timezone: timezone}, nil
+}
+
+func setTime(params timeSetParams) (timeStatus, error) {
+	if params.DateTime != "" {
+		parsed, err := time.ParseInLocation("2006-01-02 15:04:05", params.DateTime, time.Local)
+		if err != nil {
+			return timeStatus{}, fmt.Errorf("dateTime must be YYYY-MM-DD HH:MM:SS")
+		}
+		if _, err := runCommand("date", "-s", parsed.Format("2006-01-02 15:04:05")); err != nil {
+			return timeStatus{}, err
+		}
+	}
+	if params.Timezone != "" {
+		zone := filepath.Clean(params.Timezone)
+		if filepath.IsAbs(zone) || zone == "." || strings.HasPrefix(zone, "..") {
+			return timeStatus{}, fmt.Errorf("invalid timezone")
+		}
+		zoneFile := filepath.Join("/usr/share/zoneinfo", zone)
+		if info, err := os.Stat(zoneFile); err != nil || info.IsDir() {
+			return timeStatus{}, fmt.Errorf("timezone not found: %s", params.Timezone)
+		}
+		if err := os.Remove("/etc/localtime"); err != nil && !os.IsNotExist(err) {
+			return timeStatus{}, fmt.Errorf("update timezone: %w", err)
+		}
+		if err := os.Symlink(zoneFile, "/etc/localtime"); err != nil {
+			return timeStatus{}, fmt.Errorf("update timezone: %w", err)
+		}
+	}
+	if params.DateTime == "" && params.Timezone == "" {
+		return timeStatus{}, fmt.Errorf("dateTime or timezone is required")
+	}
+	return getTimeStatus()
+}
+
+func syncNTP(params ntpSyncParams) (timeStatus, error) {
+	server := params.Server
+	if server == "" {
+		server = "pool.ntp.org"
+	}
+	if !regexp.MustCompile(`^[A-Za-z0-9.-]+$`).MatchString(server) {
+		return timeStatus{}, fmt.Errorf("invalid NTP server")
+	}
+	if _, err := runCommand("ntpd", "-q", "-p", server); err != nil {
+		return timeStatus{}, err
+	}
+	return getTimeStatus()
 }
 
 func wpaCLICommand() string {

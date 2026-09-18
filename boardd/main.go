@@ -195,6 +195,34 @@ func dispatch(req request) response {
 			return response{ID: req.ID, OK: false, Error: err.Error()}
 		}
 		return response{ID: req.ID, OK: true, Result: value}
+	case "time.status":
+		value, err := getTimeStatus()
+		if err != nil {
+			return response{ID: req.ID, OK: false, Error: err.Error()}
+		}
+		return response{ID: req.ID, OK: true, Result: value}
+	case "time.set":
+		var params timeSetParams
+		if err := decodeParams(req, &params); err != nil {
+			return response{ID: req.ID, OK: false, Error: err.Error()}
+		}
+		value, err := setTime(params)
+		if err != nil {
+			return response{ID: req.ID, OK: false, Error: err.Error()}
+		}
+		return response{ID: req.ID, OK: true, Result: value}
+	case "time.ntp.sync":
+		var params ntpSyncParams
+		if len(req.Params) > 0 && string(req.Params) != "null" {
+			if err := json.Unmarshal(req.Params, &params); err != nil {
+				return response{ID: req.ID, OK: false, Error: fmt.Sprintf("invalid params for %s: %v", req.Method, err)}
+			}
+		}
+		value, err := syncNTP(params)
+		if err != nil {
+			return response{ID: req.ID, OK: false, Error: err.Error()}
+		}
+		return response{ID: req.ID, OK: true, Result: value}
 	case "power.suspend", "power.reboot", "power.poweroff":
 		var params powerParams
 		if err := decodeParams(req, &params); err != nil {
