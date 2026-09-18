@@ -10,7 +10,7 @@ ApplicationWindow {
     minimumHeight: height; maximumHeight: height
     visible: true
     title: "Board Platform"
-    color: "#08111f"
+    color: "#0b1220"
 
     property bool busy: false
     property bool responseOK: true
@@ -137,7 +137,11 @@ ApplicationWindow {
         anchors.fill: parent; anchors.margins: 18; spacing: 14
         Rectangle {
             Layout.fillWidth: true; Layout.preferredHeight: 70; radius: 14
-            color: "#122741"; border.color: "#2d527d"; border.width: 1
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: "#162943" }
+                GradientStop { position: 1.0; color: "#101e33" }
+            }
+            border.color: "#294761"; border.width: 1
             RowLayout {
                 anchors.fill: parent; anchors.margins: 15; spacing: 14
                 Button {
@@ -148,7 +152,7 @@ ApplicationWindow {
                 }
                 ColumnLayout { Layout.fillWidth: true; spacing: 0
                     Label { text: "Board Platform"; color: "#f5f9ff"; font.pixelSize: 26; font.bold: true }
-                    Label { text: board.socketPath; color: "#9ac0e8"; font.pixelSize: 13 }
+                    Label { text: "Device service console"; color: "#8ba8c5"; font.pixelSize: 13 }
                 }
                 Label { text: window.currentTime; color: "#f5f9ff"; font.pixelSize: 25; font.bold: true }
                 Rectangle { Layout.preferredWidth: 112; Layout.preferredHeight: 34; radius: 17; color: window.busy ? "#70501b" : "#12533b"
@@ -163,21 +167,23 @@ ApplicationWindow {
 
             Item {
                 ColumnLayout { anchors.fill: parent; spacing: 12
-                    Label { text: "Services"; color: "#f5f9ff"; font.pixelSize: 26; font.bold: true }
-                    Label { text: "Choose a category"; color: "#92abc8"; font.pixelSize: 15 }
+                    Label { text: "Services"; color: "#f5f9ff"; font.pixelSize: 28; font.bold: true }
+                    Label { text: "Choose a device service"; color: "#92abc8"; font.pixelSize: 15 }
                     GridLayout { Layout.fillWidth: true; Layout.fillHeight: true; columns: 2; columnSpacing: 12; rowSpacing: 12
                     Repeater { model: window.categories
                         delegate: Button {
                             id: categoryButton
                             Layout.fillWidth: true; Layout.fillHeight: true; text: modelData.name; font.pixelSize: 26; font.bold: true
                             background: Rectangle {
-                                radius: 12; color: categoryButton.down ? "#1b3857" : "#122741"
-                                border.color: modelData.color; border.width: 2
-                                Rectangle { anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom; width: 8; radius: 4; color: modelData.color }
+                                radius: 14; color: categoryButton.down ? "#1b3048" : "#121f31"
+                                border.color: categoryButton.hovered ? modelData.color : "#28425c"; border.width: 1
+                                Rectangle { anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom; width: 6; radius: 3; color: modelData.color }
                             }
                             contentItem: Row {
                                 anchors.centerIn: parent; spacing: 16
-                                Image { width: 42; height: 42; source: modelData.icon; fillMode: Image.PreserveAspectFit }
+                                Rectangle { width: 56; height: 56; radius: 28; color: modelData.color
+                                    Image { anchors.centerIn: parent; width: 30; height: 30; source: modelData.icon; fillMode: Image.PreserveAspectFit }
+                                }
                                 Text { text: categoryButton.text; color: "white"; font: categoryButton.font; verticalAlignment: Text.AlignVCenter }
                             }
                             onClicked: window.openCategory(modelData.name)
@@ -189,7 +195,7 @@ ApplicationWindow {
 
             Item {
                 RowLayout { anchors.fill: parent; spacing: 14
-                    Rectangle { Layout.preferredWidth: 500; Layout.fillHeight: true; radius: 14; color: "#101f34"; border.color: "#294a70"
+                    Rectangle { Layout.preferredWidth: 500; Layout.fillHeight: true; radius: 14; color: "#101c2d"; border.color: "#294a70"
                         ColumnLayout { anchors.fill: parent; anchors.margins: 18; spacing: 10
                             Label { text: window.selectedCategory; color: "white"; font.pixelSize: 28; font.bold: true }
                             Label { text: "Select a service"; color: "#92abc8"; font.pixelSize: 15 }
@@ -213,7 +219,7 @@ ApplicationWindow {
 
             Item {
                 RowLayout { anchors.fill: parent; spacing: 14
-                    Rectangle { Layout.preferredWidth: 500; Layout.fillHeight: true; radius: 14; color: "#101f34"; border.color: "#2d756e"
+                    Rectangle { Layout.preferredWidth: 500; Layout.fillHeight: true; radius: 14; color: "#101c2d"; border.color: "#2d756e"
                         ColumnLayout { anchors.fill: parent; anchors.margins: 18; spacing: 12
                             Label { text: "Wi-Fi"; color: "white"; font.pixelSize: 28; font.bold: true }
                             Label { text: "Manage the wlan0 connection through boardd"; color: "#92c8c2"; font.pixelSize: 14 }
@@ -237,7 +243,7 @@ ApplicationWindow {
     Component {
         id: responsePanel
         Rectangle {
-        radius: 14; color: "#0c1829"; border.color: window.responseOK ? "#315777" : "#944e58"; border.width: 1
+        radius: 14; color: "#101c2d"; border.color: window.responseOK ? "#294b68" : "#944e58"; border.width: 1
         ColumnLayout { anchors.fill: parent; anchors.margins: 18; spacing: 12
             RowLayout { Layout.fillWidth: true
                 Label { Layout.fillWidth: true; text: window.responseTitle; color: window.responseOK ? "#9bd6ff" : "#ffb1b8"; font.pixelSize: 20; font.bold: true; elide: Text.ElideRight }

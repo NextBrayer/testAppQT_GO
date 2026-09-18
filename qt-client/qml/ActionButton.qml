@@ -8,24 +8,29 @@ Button {
     property string detail: ""
     property string iconSource: ""
     signal triggered()
-    implicitHeight: detail.length > 0 ? 64 : 56
+    implicitHeight: detail.length > 0 ? 72 : 60
     Layout.fillWidth: true
     font.pixelSize: 16
     font.bold: true
 
     background: Rectangle {
-        radius: 10
-        color: !control.enabled ? "#263a52" : control.down ? Qt.darker(control.accent, 1.2) : control.accent
+        radius: 12
+        color: !control.enabled ? "#182536" : control.down ? "#1b3147" : "#14263a"
         border.width: 1
-        border.color: !control.enabled ? "#3b516b" : Qt.lighter(control.accent, 1.18)
+        border.color: !control.enabled ? "#263e56" : control.hovered ? Qt.lighter(control.accent, 1.25) : "#29465f"
+        Rectangle { anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom; width: 4; radius: 2; color: control.enabled ? control.accent : "#465b70" }
     }
     contentItem: RowLayout {
-        anchors.fill: parent; anchors.margins: 10; spacing: 9
-        Image { visible: control.iconSource.length > 0; source: control.iconSource; Layout.preferredWidth: 25; Layout.preferredHeight: 25; fillMode: Image.PreserveAspectFit }
+        anchors.fill: parent; anchors.margins: 12; spacing: 11
+        Rectangle {
+            visible: control.iconSource.length > 0; Layout.preferredWidth: 38; Layout.preferredHeight: 38; radius: 19
+            color: control.enabled ? control.accent : "#3b5065"
+            Image { anchors.centerIn: parent; source: control.iconSource; width: 21; height: 21; fillMode: Image.PreserveAspectFit }
+        }
         ColumnLayout {
             Layout.fillWidth: true; spacing: 1
-            Text { Layout.fillWidth: true; text: control.text; color: control.enabled ? "white" : "#a1b4c9"; font: control.font; elide: Text.ElideRight }
-            Text { visible: control.detail.length > 0; Layout.fillWidth: true; text: control.detail; color: control.enabled ? "#dcecff" : "#8296ad"; font.pixelSize: 11; elide: Text.ElideRight }
+            Text { Layout.fillWidth: true; text: control.text; color: control.enabled ? "#f7fbff" : "#8496a9"; font: control.font; elide: Text.ElideRight }
+            Text { visible: control.detail.length > 0; Layout.fillWidth: true; text: control.detail; color: control.enabled ? "#9cb1c8" : "#66798c"; font.pixelSize: 12; elide: Text.ElideRight }
         }
     }
     onClicked: triggered()
