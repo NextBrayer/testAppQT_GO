@@ -3,6 +3,7 @@
 #include <QLocalSocket>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QTimer>
 
 BoardClient::BoardClient(QObject *parent) : QObject(parent) {}
 
@@ -53,6 +54,12 @@ void BoardClient::request(const QString &method, const QVariantMap &params) {
     // the app remains binary-compatible with the board's helperboard Qt 5 SDK.
     connect(socket, static_cast<void (QLocalSocket::*)(QLocalSocket::LocalSocketError)>(&QLocalSocket::error), this, [this, socket](QLocalSocket::LocalSocketError) {
         fail(socket, socket->errorString());
+    });
+
+    // A missing/stalled service must not leave the QML UI permanently busy.
+    QTimer::singleShot(10000, socket, [this, socket]() {
+        if (m_requestIDs.contains(socket))
+            fail(socket, QStringLiteral("boardd request timed out"));
     });
 
     socket->connectToServer(m_socketPath);

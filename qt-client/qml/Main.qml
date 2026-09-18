@@ -14,10 +14,21 @@ ApplicationWindow {
     visible: true
     title: "Board Service Test"
     color: "#10151f"
+    property bool busy: false
+    property string activeMethod: ""
+
+    function callBoardd(method, params) {
+        if (busy)
+            return
+        busy = true
+        activeMethod = method
+        board.request(method, params || {})
+    }
 
     BoardClient {
         id: board
         onResponseReceived: function(id, method, ok, result, error) {
+            window.busy = false
             output.text = JSON.stringify({ id: id, method: method, ok: ok, result: result, error: error }, null, 2)
         }
     }
@@ -27,17 +38,52 @@ ApplicationWindow {
         anchors.margins: 24
         spacing: 16
 
-        Label {
-            text: "boardd native IPC client"
-            color: "white"
-            font.pixelSize: 26
-            font.bold: true
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 76
+            radius: 10
+            color: "#192b42"
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.margins: 16
+                spacing: 16
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    Label {
+                        text: "Board Platform"
+                        color: "white"
+                        font.pixelSize: 27
+                        font.bold: true
+                    }
+                    Label {
+                        text: board.socketPath
+                        color: "#a7c6ed"
+                        font.pixelSize: 14
+                    }
+                }
+
+                Rectangle {
+                    radius: 12
+                    color: window.busy ? "#a87615" : "#16744c"
+                    Layout.preferredWidth: 116
+                    Layout.preferredHeight: 32
+                    Label {
+                        anchors.centerIn: parent
+                        text: window.busy ? "Working…" : "Ready"
+                        color: "white"
+                        font.bold: true
+                    }
+                }
+            }
         }
 
         Label {
-            text: board.socketPath
-            color: "#9db2ce"
-            font.pixelSize: 15
+            text: "Native boardd commands"
+            color: "white"
+            font.pixelSize: 18
+            font.bold: true
         }
 
         GridLayout {
@@ -45,14 +91,14 @@ ApplicationWindow {
             columnSpacing: 12
             rowSpacing: 12
 
-            Button { text: "Health"; onClicked: board.request("health.get") }
-            Button { text: "Battery"; onClicked: board.request("battery.get") }
-            Button { text: "Network"; onClicked: board.request("network.status") }
-            Button { text: "USB devices"; onClicked: board.request("usb.devices") }
-            Button { text: "Wi-Fi status"; onClicked: board.request("wifi.status") }
-            Button { text: "Wi-Fi scan"; onClicked: board.request("wifi.scan") }
-            Button { text: "Read PB4"; onClicked: board.request("gpio.read", { port: "b", pin: 4 }) }
-            Button { text: "Write PB4 high"; onClicked: board.request("gpio.write", { port: "b", pin: 4, value: 1 }) }
+            Button { text: "Health"; enabled: !window.busy; onClicked: window.callBoardd("health.get") }
+            Button { text: "Battery"; enabled: !window.busy; onClicked: window.callBoardd("battery.get") }
+            Button { text: "Network"; enabled: !window.busy; onClicked: window.callBoardd("network.status") }
+            Button { text: "USB devices"; enabled: !window.busy; onClicked: window.callBoardd("usb.devices") }
+            Button { text: "Wi-Fi status"; enabled: !window.busy; onClicked: window.callBoardd("wifi.status") }
+            Button { text: "Wi-Fi scan"; enabled: !window.busy; onClicked: window.callBoardd("wifi.scan") }
+            Button { text: "Read PB4"; enabled: !window.busy; onClicked: window.callBoardd("gpio.read", { port: "b", pin: 4 }) }
+            Button { text: "Set PB4 high"; enabled: !window.busy; onClicked: window.callBoardd("gpio.write", { port: "b", pin: 4, value: 1 }) }
         }
 
         Rectangle {
