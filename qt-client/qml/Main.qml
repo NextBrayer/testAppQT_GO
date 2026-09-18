@@ -157,9 +157,9 @@ ApplicationWindow {
             implicitHeight: 64; color: "transparent"
             RowLayout { anchors.fill: parent; anchors.margins: 12; spacing: 8
                 Label { Layout.fillWidth: true; text: "Scroll with touch, or use the arrows"; color: "#9eb9d8"; font.pixelSize: 13 }
-                Button { text: "Up"; onClicked: detailsFlickable.contentY = Math.max(0, detailsFlickable.contentY - 150) }
-                Button { text: "Down"; onClicked: detailsFlickable.contentY = Math.min(detailsFlickable.contentHeight - detailsFlickable.height, detailsFlickable.contentY + 150) }
-                Button { text: "Close"; onClicked: detailsDialog.close() }
+                AppButton { text: "Up"; outlined: true; accent: "#77a9e8"; onClicked: detailsFlickable.contentY = Math.max(0, detailsFlickable.contentY - 150) }
+                AppButton { text: "Down"; outlined: true; accent: "#77a9e8"; onClicked: detailsFlickable.contentY = Math.min(detailsFlickable.contentHeight - detailsFlickable.height, detailsFlickable.contentY + 150) }
+                AppButton { text: "Close"; onClicked: detailsDialog.close() }
             }
         }
     }
@@ -204,7 +204,7 @@ ApplicationWindow {
                     onActiveFocusChanged: if (activeFocus) wifiKeyboard.target = passwordInput
                     background: Rectangle { radius: 9; color: "#f8fbff"; border.color: passwordInput.activeFocus ? "#246bdb" : "#cdd9e6"; border.width: passwordInput.activeFocus ? 2 : 1 }
                 }
-                Button { text: wifiDialog.passwordVisible ? "Hide" : "Show"; onClicked: wifiDialog.passwordVisible = !wifiDialog.passwordVisible }
+                AppButton { text: wifiDialog.passwordVisible ? "Hide" : "Show"; outlined: true; onClicked: wifiDialog.passwordVisible = !wifiDialog.passwordVisible }
             }
             OnScreenKeyboard { id: wifiKeyboard; Layout.fillWidth: true; target: ssidInput }
         }
@@ -260,10 +260,10 @@ ApplicationWindow {
             RowLayout {
                 anchors.fill: parent; anchors.margins: 14; spacing: 8
                 Item { Layout.fillWidth: true }
-                Button { text: "Cancel"; onClicked: gpioDialog.close() }
-                Button { text: "Read"; onClicked: { gpioDialog.close(); window.callBoardd("gpio.read", { port: gpioPort.currentText, pin: gpioPin.value }, "Read P" + gpioPort.currentText + gpioPin.value) } }
-                Button { text: "Set LOW"; onClicked: { gpioDialog.close(); window.confirmAction("gpio.write", { port: gpioPort.currentText, pin: gpioPin.value, value: 0 }, "Set P" + gpioPort.currentText + gpioPin.value + " LOW") } }
-                Button { text: "Set HIGH"; onClicked: { gpioDialog.close(); window.confirmAction("gpio.write", { port: gpioPort.currentText, pin: gpioPin.value, value: 1 }, "Set P" + gpioPort.currentText + gpioPin.value + " HIGH") } }
+                AppButton { text: "Cancel"; outlined: true; onClicked: gpioDialog.close() }
+                AppButton { text: "Read"; onClicked: { gpioDialog.close(); window.callBoardd("gpio.read", { port: gpioPort.currentText, pin: gpioPin.value }, "Read P" + gpioPort.currentText + gpioPin.value) } }
+                AppButton { text: "Set LOW"; accent: "#d48620"; onClicked: { gpioDialog.close(); window.confirmAction("gpio.write", { port: gpioPort.currentText, pin: gpioPin.value, value: 0 }, "Set P" + gpioPort.currentText + gpioPin.value + " LOW") } }
+                AppButton { text: "Set HIGH"; accent: "#22a06b"; onClicked: { gpioDialog.close(); window.confirmAction("gpio.write", { port: gpioPort.currentText, pin: gpioPin.value, value: 1 }, "Set P" + gpioPort.currentText + gpioPin.value + " HIGH") } }
             }
         }
     }
@@ -288,17 +288,20 @@ ApplicationWindow {
     ColumnLayout {
         anchors.fill: parent; anchors.margins: 18; spacing: 14
         Rectangle {
-            Layout.fillWidth: true; Layout.preferredHeight: 70; radius: 14; color: "white"; border.color: "#dce4ee"
+            Layout.fillWidth: true; Layout.preferredHeight: 72; radius: 16; color: "#132b46"; border.color: "#234a70"
             RowLayout {
-                anchors.fill: parent; anchors.margins: 15; spacing: 14
-                Button { visible: window.page !== "home"; text: "Back"; onClicked: window.back() }
-                Label { Layout.fillWidth: true; text: "Test Platform"; color: "#17243a"; font.pixelSize: 26; font.bold: true }
+                anchors.fill: parent; anchors.margins: 16; spacing: 12
+                Rectangle { Layout.preferredWidth: 38; Layout.preferredHeight: 38; radius: 11; color: "#2f80ed"
+                    Text { anchors.centerIn: parent; text: "T"; color: "white"; font.pixelSize: 21; font.bold: true }
+                }
+                AppButton { visible: window.page !== "home"; text: "Back"; outlined: true; accent: "#9fc5f3"; onClicked: window.back() }
+                Label { Layout.fillWidth: true; text: "Test Platform"; color: "#f5f9ff"; font.pixelSize: 25; font.bold: true }
                 Column {
                     spacing: 0
-                    Text { text: window.currentDay; color: "#708096"; font.pixelSize: 12; horizontalAlignment: Text.AlignRight }
-                    Text { text: window.currentTime; color: "#17243a"; font.pixelSize: 25; font.bold: true; horizontalAlignment: Text.AlignRight }
+                    Text { text: window.currentDay; color: "#a9c3dd"; font.pixelSize: 12; horizontalAlignment: Text.AlignRight }
+                    Text { text: window.currentTime; color: "#f5f9ff"; font.pixelSize: 25; font.bold: true; horizontalAlignment: Text.AlignRight }
                 }
-                Rectangle { Layout.preferredWidth: 110; Layout.preferredHeight: 32; radius: 16; color: window.busy ? "#e49a35" : "#22a06b"
+                Rectangle { Layout.preferredWidth: 106; Layout.preferredHeight: 32; radius: 16; color: window.busy ? "#e49a35" : "#22a06b"
                     Label { anchors.centerIn: parent; text: window.busy ? "WORKING" : "ONLINE"; color: "white"; font.pixelSize: 12; font.bold: true }
                 }
             }
@@ -440,9 +443,9 @@ ApplicationWindow {
                             Text { text: "Draw anywhere on the screen"; color: "#708096"; font.pixelSize: 13 }
                         }
                     }
-                    Button {
+                    AppButton {
                         anchors.right: parent.right; anchors.top: parent.top; anchors.margins: 16
-                        text: "Clear drawing"
+                        text: "Clear drawing"; outlined: true
                         onClicked: touchCanvas.clearDrawing()
                     }
                 }
@@ -462,11 +465,23 @@ ApplicationWindow {
             anchors.fill: parent
             property var strokes: []
             property int activeStroke: -1
+            property double lastTouchEventMs: 0
 
             function startStroke(x, y) { strokes.push([{ x: x, y: y }]); activeStroke = strokes.length - 1; requestPaint() }
             function continueStroke(x, y) { if (activeStroke >= 0) { strokes[activeStroke].push({ x: x, y: y }); requestPaint() } }
             function endStroke() { activeStroke = -1 }
             function clearDrawing() { strokes = []; activeStroke = -1; requestPaint() }
+            function pressOrContinue(x, y) {
+                var now = Date.now()
+                // Some EGLFS touch drivers report every movement as Pressed
+                // without sending Updated/Released. Join closely spaced presses
+                // into one stroke so the test still draws a continuous line.
+                if (activeStroke >= 0 && now - lastTouchEventMs < 500)
+                    continueStroke(x, y)
+                else
+                    startStroke(x, y)
+                lastTouchEventMs = now
+            }
 
             onPaint: {
                 var ctx = getContext("2d")
@@ -491,8 +506,8 @@ ApplicationWindow {
             MultiPointTouchArea {
                 anchors.fill: parent
                 touchPoints: [ TouchPoint { id: drawTouch } ]
-                onPressed: fullTouchCanvas.startStroke(drawTouch.x, drawTouch.y)
-                onUpdated: if (drawTouch.pressed) fullTouchCanvas.continueStroke(drawTouch.x, drawTouch.y)
+                onPressed: fullTouchCanvas.pressOrContinue(drawTouch.x, drawTouch.y)
+                onUpdated: if (drawTouch.pressed) { fullTouchCanvas.continueStroke(drawTouch.x, drawTouch.y); fullTouchCanvas.lastTouchEventMs = Date.now() }
                 onReleased: fullTouchCanvas.endStroke()
             }
             // Fallback for display plugins that translate touch into mouse input.
@@ -511,8 +526,8 @@ ApplicationWindow {
                 Text { text: "Draw across the complete screen"; color: "#708096"; font.pixelSize: 13 }
             }
         }
-        Button { z: 1; anchors.right: clearTouchButton.left; anchors.rightMargin: 8; anchors.top: parent.top; anchors.topMargin: 16; text: "Back"; onClicked: window.page = "category" }
-        Button { id: clearTouchButton; z: 1; anchors.right: parent.right; anchors.top: parent.top; anchors.margins: 16; text: "Clear"; onClicked: fullTouchCanvas.clearDrawing() }
+        AppButton { z: 1; anchors.right: clearTouchButton.left; anchors.rightMargin: 8; anchors.top: parent.top; anchors.topMargin: 16; text: "Back"; outlined: true; onClicked: window.page = "category" }
+        AppButton { id: clearTouchButton; z: 1; anchors.right: parent.right; anchors.top: parent.top; anchors.margins: 16; text: "Clear"; onClicked: fullTouchCanvas.clearDrawing() }
     }
 
     Component {
@@ -527,7 +542,7 @@ ApplicationWindow {
                     Label { text: window.responseTitle; color: "#17243a"; font.pixelSize: 16; font.bold: true }
                     Label { Layout.fillWidth: true; text: window.responseText; color: "#607187"; font.pixelSize: 14; elide: Text.ElideRight }
                 }
-                Button { text: "Show details"; visible: window.detailsText.length > 0; onClicked: detailsDialog.open() }
+                AppButton { text: "Show details"; visible: window.detailsText.length > 0; outlined: true; onClicked: detailsDialog.open() }
             }
         }
     }
