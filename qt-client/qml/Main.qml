@@ -20,6 +20,7 @@ ApplicationWindow {
     property string page: "home"
     property string selectedCategory: ""
     property string currentTime: Qt.formatTime(new Date(), "hh:mm")
+    property string currentDay: Qt.formatDate(new Date(), "dddd, dd MMM")
     property string pendingMethod: ""
     property var pendingParams: ({})
     property string pendingLabel: ""
@@ -57,7 +58,7 @@ ApplicationWindow {
         ]
     })
 
-    Timer { interval: 1000; running: true; repeat: true; onTriggered: window.currentTime = Qt.formatTime(new Date(), "hh:mm") }
+    Timer { interval: 1000; running: true; repeat: true; onTriggered: { window.currentTime = Qt.formatTime(new Date(), "hh:mm"); window.currentDay = Qt.formatDate(new Date(), "dddd, dd MMM") } }
 
     function callBoardd(method, params, label) {
         if (busy) return
@@ -141,17 +142,18 @@ ApplicationWindow {
     }
 
     Dialog {
-        id: wifiDialog; modal: true; width: 470
+        id: wifiDialog; modal: true; width: 520
         x: (window.width - width) / 2; y: (window.height - height) / 2
         title: "Connect Wi-Fi"; standardButtons: Dialog.Cancel | Dialog.Ok
         background: Rectangle { radius: 14; color: "white"; border.color: "#d8e1eb" }
         header: Label { text: wifiDialog.title; color: "#17243a"; font.pixelSize: 21; font.bold: true; padding: 20 }
         contentItem: ColumnLayout {
             spacing: 10
-            TextField { id: ssidInput; Layout.fillWidth: true; placeholderText: "Wi-Fi name (SSID)"; focus: true; selectByMouse: true }
-            TextField { id: passwordInput; Layout.fillWidth: true; placeholderText: "Password (leave empty for open network)"; echoMode: TextInput.Password; selectByMouse: true }
+            TextField { id: ssidInput; Layout.fillWidth: true; placeholderText: "Wi-Fi name (SSID)"; focus: true; selectByMouse: true; onActiveFocusChanged: if (activeFocus) wifiKeyboard.target = ssidInput }
+            TextField { id: passwordInput; Layout.fillWidth: true; placeholderText: "Password (leave empty for open network)"; echoMode: TextInput.Password; selectByMouse: true; onActiveFocusChanged: if (activeFocus) wifiKeyboard.target = passwordInput }
+            OnScreenKeyboard { id: wifiKeyboard; Layout.fillWidth: true; target: ssidInput }
         }
-        onOpened: { if (ssidInput.text.length === 0) ssidInput.forceActiveFocus(); else passwordInput.forceActiveFocus(); Qt.inputMethod.show() }
+        onOpened: { if (ssidInput.text.length === 0) ssidInput.forceActiveFocus(); else passwordInput.forceActiveFocus() }
         onAccepted: {
             if (ssidInput.text.length === 0) { responseOK = false; responseTitle = "Action failed"; responseText = "SSID is required."; return }
             window.callBoardd("wifi.connect", { ssid: ssidInput.text, password: passwordInput.text }, "Connect Wi-Fi")
@@ -212,7 +214,7 @@ ApplicationWindow {
     }
 
     Dialog {
-        id: timeDialog; modal: true; width: 530
+        id: timeDialog; modal: true; width: 550
         x: (window.width - width) / 2; y: (window.height - height) / 2
         title: "Set date, time and timezone"; standardButtons: Dialog.Cancel | Dialog.Ok
         background: Rectangle { radius: 14; color: "white"; border.color: "#d8e1eb" }
@@ -220,9 +222,10 @@ ApplicationWindow {
         contentItem: ColumnLayout {
             spacing: 10
             Label { text: "Date and time"; color: "#53657a" }
-            TextField { id: dateTimeInput; Layout.fillWidth: true; placeholderText: "YYYY-MM-DD HH:MM:SS"; text: Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm:ss") }
+            TextField { id: dateTimeInput; Layout.fillWidth: true; placeholderText: "YYYY-MM-DD HH:MM:SS"; text: Qt.formatDateTime(new Date(), "yyyy-MM-dd hh:mm:ss"); onActiveFocusChanged: if (activeFocus) timeKeyboard.target = dateTimeInput }
             Label { text: "Timezone"; color: "#53657a" }
-            TextField { id: timezoneInput; Layout.fillWidth: true; placeholderText: "Example: Africa/Casablanca"; text: "Africa/Casablanca" }
+            TextField { id: timezoneInput; Layout.fillWidth: true; placeholderText: "Example: Africa/Casablanca"; text: "Africa/Casablanca"; onActiveFocusChanged: if (activeFocus) timeKeyboard.target = timezoneInput }
+            OnScreenKeyboard { id: timeKeyboard; Layout.fillWidth: true; target: dateTimeInput }
         }
         onAccepted: window.callBoardd("time.set", { dateTime: dateTimeInput.text, timezone: timezoneInput.text }, "Set time")
     }
@@ -235,7 +238,11 @@ ApplicationWindow {
                 anchors.fill: parent; anchors.margins: 15; spacing: 14
                 Button { visible: window.page !== "home"; text: "Back"; onClicked: window.back() }
                 Label { Layout.fillWidth: true; text: "Test Platform"; color: "#17243a"; font.pixelSize: 26; font.bold: true }
-                Label { text: window.currentTime; color: "#17243a"; font.pixelSize: 25; font.bold: true }
+                Column {
+                    spacing: 0
+                    Text { text: window.currentDay; color: "#708096"; font.pixelSize: 12; horizontalAlignment: Text.AlignRight }
+                    Text { text: window.currentTime; color: "#17243a"; font.pixelSize: 25; font.bold: true; horizontalAlignment: Text.AlignRight }
+                }
                 Rectangle { Layout.preferredWidth: 110; Layout.preferredHeight: 32; radius: 16; color: window.busy ? "#e49a35" : "#22a06b"
                     Label { anchors.centerIn: parent; text: window.busy ? "WORKING" : "ONLINE"; color: "white"; font.pixelSize: 12; font.bold: true }
                 }
@@ -386,6 +393,71 @@ ApplicationWindow {
                 }
             }
         }
+    }
+
+    // This overlay deliberately sits above the navigation bar as well. It is
+    // a real full-screen touch test, not merely a content-area drawing panel.
+    Item {
+        anchors.fill: parent
+        visible: window.page === "touch"
+        z: 100
+        Rectangle { anchors.fill: parent; color: "white" }
+        Canvas {
+            id: fullTouchCanvas
+            anchors.fill: parent
+            property var strokes: []
+            property int activeStroke: -1
+
+            function startStroke(x, y) { strokes.push([{ x: x, y: y }]); activeStroke = strokes.length - 1; requestPaint() }
+            function continueStroke(x, y) { if (activeStroke >= 0) { strokes[activeStroke].push({ x: x, y: y }); requestPaint() } }
+            function endStroke() { activeStroke = -1 }
+            function clearDrawing() { strokes = []; activeStroke = -1; requestPaint() }
+
+            onPaint: {
+                var ctx = getContext("2d")
+                ctx.clearRect(0, 0, width, height)
+                ctx.lineWidth = 5
+                ctx.lineCap = "round"
+                ctx.lineJoin = "round"
+                ctx.strokeStyle = "#2f80ed"
+                ctx.fillStyle = "#2f80ed"
+                for (var i = 0; i < strokes.length; ++i) {
+                    var stroke = strokes[i]
+                    if (stroke.length === 0) continue
+                    if (stroke.length === 1) {
+                        ctx.beginPath(); ctx.arc(stroke[0].x, stroke[0].y, 2.5, 0, Math.PI * 2); ctx.fill(); continue
+                    }
+                    ctx.beginPath(); ctx.moveTo(stroke[0].x, stroke[0].y)
+                    for (var j = 1; j < stroke.length; ++j) ctx.lineTo(stroke[j].x, stroke[j].y)
+                    ctx.stroke()
+                }
+            }
+
+            MultiPointTouchArea {
+                anchors.fill: parent
+                touchPoints: [ TouchPoint { id: drawTouch } ]
+                onPressed: fullTouchCanvas.startStroke(drawTouch.x, drawTouch.y)
+                onUpdated: if (drawTouch.pressed) fullTouchCanvas.continueStroke(drawTouch.x, drawTouch.y)
+                onReleased: fullTouchCanvas.endStroke()
+            }
+            // Fallback for display plugins that translate touch into mouse input.
+            MouseArea {
+                anchors.fill: parent; z: -1
+                onPressed: fullTouchCanvas.startStroke(mouse.x, mouse.y)
+                onPositionChanged: if (pressed) fullTouchCanvas.continueStroke(mouse.x, mouse.y)
+                onReleased: fullTouchCanvas.endStroke()
+            }
+        }
+        Rectangle {
+            z: 1; anchors.left: parent.left; anchors.top: parent.top; anchors.margins: 16
+            width: 280; height: 74; radius: 12; color: "#ffffff"; border.color: "#cfdbe8"
+            Column { anchors.fill: parent; anchors.margins: 12; spacing: 3
+                Text { text: "Touch test"; color: "#17243a"; font.pixelSize: 20; font.bold: true }
+                Text { text: "Draw across the complete screen"; color: "#708096"; font.pixelSize: 13 }
+            }
+        }
+        Button { z: 1; anchors.right: clearTouchButton.left; anchors.rightMargin: 8; anchors.top: parent.top; anchors.topMargin: 16; text: "Back"; onClicked: window.page = "category" }
+        Button { id: clearTouchButton; z: 1; anchors.right: parent.right; anchors.top: parent.top; anchors.margins: 16; text: "Clear"; onClicked: fullTouchCanvas.clearDrawing() }
     }
 
     Component {
